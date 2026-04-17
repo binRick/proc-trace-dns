@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#06b6d4" opacity="0.8"/>
+    </marker>
+    <marker id="arrow-dim" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4b5563"/>
+    </marker>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      .mono { font-family: 'Courier New', monospace; }
+      .sans { font-family: system-ui, sans-serif; }
+      .box-label { fill: #f1f5f9; font-size: 12px; font-weight: 600; }
+      .box-sub   { fill: #6b7280; font-size: 10px; }
+      .edge-label{ fill: #06b6d4; font-size: 10px; font-family: 'Courier New', monospace; }
+      .accent    { fill: #06b6d4; }
+      .violet    { fill: #a78bfa; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="760" height="300" fill="#060910" rx="10" stroke="#1f2937" stroke-width="1"/>
+
+  <!-- Title -->
+  <text x="380" y="24" text-anchor="middle" class="sans" font-size="12" fill="#4b5563" letter-spacing="2">HOW IT WORKS</text>
+
+  <!-- ── Layer 1: Processes ── -->
+  <!-- Process box: curl -->
+  <rect x="20" y="48" width="90" height="44" rx="6" fill="#111827" stroke="#1f2937"/>
+  <text x="65" y="67" text-anchor="middle" class="mono box-label">curl</text>
+  <text x="65" y="82" text-anchor="middle" class="mono box-sub">pid 12341</text>
+
+  <!-- Process box: node -->
+  <rect x="20" y="104" width="90" height="44" rx="6" fill="#111827" stroke="#1f2937"/>
+  <text x="65" y="123" text-anchor="middle" class="mono box-label">node</text>
+  <text x="65" y="138" text-anchor="middle" class="mono box-sub">pid 12342</text>
+
+  <!-- Process box: python3 -->
+  <rect x="20" y="160" width="90" height="44" rx="6" fill="#111827" stroke="#1f2937"/>
+  <text x="65" y="179" text-anchor="middle" class="mono box-label">python3</text>
+  <text x="65" y="194" text-anchor="middle" class="mono box-sub">pid 12343</text>
+
+  <!-- Process box: ... -->
+  <rect x="20" y="216" width="90" height="44" rx="6" fill="#111827" stroke="#1f2937" stroke-dasharray="4,3"/>
+  <text x="65" y="242" text-anchor="middle" class="mono" fill="#374151" font-size="18">···</text>
+
+  <!-- Label: Processes -->
+  <text x="65" y="278" text-anchor="middle" class="sans" font-size="10" fill="#374151" letter-spacing="1">PROCESSES</text>
+
+  <!-- ── UDP socket arrows → resolver ── -->
+  <line x1="110" y1="70" x2="178" y2="150" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow-dim)" stroke-dasharray="4,2"/>
+  <line x1="110" y1="126" x2="178" y2="152" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow-dim)" stroke-dasharray="4,2"/>
+  <line x1="110" y1="182" x2="178" y2="154" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow-dim)" stroke-dasharray="4,2"/>
+  <text x="128" y="115" class="mono" font-size="9" fill="#374151">UDP :53</text>
+
+  <!-- ── Resolver box ── -->
+  <rect x="178" y="120" width="110" height="60" rx="6" fill="#111827" stroke="#1f2937"/>
+  <text x="233" y="143" text-anchor="middle" class="mono box-label" fill="#9ca3af">systemd-</text>
+  <text x="233" y="158" text-anchor="middle" class="mono box-label" fill="#9ca3af">resolved</text>
+  <text x="233" y="171" text-anchor="middle" class="mono box-sub">/etc/resolv.conf</text>
+
+  <!-- Resolver label -->
+  <text x="233" y="278" text-anchor="middle" class="sans" font-size="10" fill="#374151" letter-spacing="1">RESOLVER</text>
+
+  <!-- ── AF_PACKET capture ── -->
+  <!-- Vertical "wire" between resolver and internet -->
+  <line x1="340" y1="60" x2="340" y2="240" stroke="#1f2937" stroke-width="2"/>
+
+  <!-- Capture intercept box -->
+  <rect x="295" y="120" width="90" height="60" rx="6" fill="#0c1929" stroke="#06b6d4" stroke-width="1.5" filter="url(#glow2)"/>
+  <text x="340" y="143" text-anchor="middle" class="mono" font-size="11" fill="#06b6d4" font-weight="bold">AF_PACKET</text>
+  <text x="340" y="158" text-anchor="middle" class="mono box-sub" fill="#0891b2">SOCK_RAW</text>
+  <text x="340" y="171" text-anchor="middle" class="mono box-sub" fill="#0891b2">ETH_P_ALL</text>
+
+  <!-- Arrow: resolver → capture -->
+  <line x1="288" y1="150" x2="296" y2="150" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Arrow: capture → proc resolver -->
+  <line x1="385" y1="150" x2="430" y2="150" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Labels on wire -->
+  <text x="340" y="90" text-anchor="middle" class="mono edge-label">query →</text>
+  <text x="340" y="218" text-anchor="middle" class="mono edge-label">← response</text>
+
+  <!-- ── Proc lookup ── -->
+  <rect x="430" y="60" width="130" height="180" rx="6" fill="#111827" stroke="#1f2937"/>
+  <text x="495" y="82" text-anchor="middle" class="mono" font-size="11" fill="#9ca3af" font-weight="600">proc lookup</text>
+  <line x1="440" y1="90" x2="550" y2="90" stroke="#1f2937"/>
+
+  <text x="445" y="108" class="mono" font-size="10" fill="#4b5563">/proc/net/udp</text>
+  <text x="445" y="122" class="mono" font-size="10" fill="#06b6d4">port → inode</text>
+
+  <line x1="440" y1="130" x2="550" y2="130" stroke="#1f2937" stroke-dasharray="3,2"/>
+
+  <text x="445" y="148" class="mono" font-size="10" fill="#4b5563">/proc/*/fd/</text>
+  <text x="445" y="162" class="mono" font-size="10" fill="#06b6d4">inode → PID</text>
+
+  <line x1="440" y1="170" x2="550" y2="170" stroke="#1f2937" stroke-dasharray="3,2"/>
+
+  <text x="445" y="188" class="mono" font-size="10" fill="#4b5563">/proc/PID/comm</text>
+  <text x="445" y="202" class="mono" font-size="10" fill="#06b6d4">PID → name</text>
+
+  <line x1="440" y1="212" x2="550" y2="212" stroke="#1f2937" stroke-dasharray="3,2"/>
+
+  <text x="445" y="228" class="mono" font-size="10" fill="#a78bfa">2s TTL cache</text>
+
+  <!-- Arrow: proc lookup → output -->
+  <line x1="560" y1="150" x2="610" y2="150" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Override arrow marker color -->
+  <marker id="arrow-v" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#a78bfa"/>
+  </marker>
+  <line x1="560" y1="150" x2="610" y2="150" stroke="#a78bfa" stroke-width="2"/>
+  <polygon points="608,147 616,150 608,153" fill="#a78bfa"/>
+
+  <!-- Proc lookup label -->
+  <text x="495" y="278" text-anchor="middle" class="sans" font-size="10" fill="#374151" letter-spacing="1">PROC LOOKUP</text>
+
+  <!-- ── Output ── -->
+  <rect x="618" y="88" width="122" height="124" rx="6" fill="#111827" stroke="#1f2937"/>
+  <text x="679" y="106" text-anchor="middle" class="mono" font-size="10" fill="#9ca3af" font-weight="600">output</text>
+  <line x1="628" y1="112" x2="730" y2="112" stroke="#1f2937"/>
+
+  <text x="630" y="128" class="mono" font-size="9"><tspan fill="#fbbf24">12341  </tspan><tspan fill="#67e8f9">curl</tspan></text>
+  <text x="630" y="142" class="mono" font-size="9"><tspan fill="#a78bfa">A  </tspan><tspan fill="#4ade80">api.github.com</tspan></text>
+  <text x="630" y="156" class="mono" font-size="9"><tspan fill="#6b7280">→ </tspan><tspan fill="#38bdf8">140.82.121.6</tspan></text>
+  <line x1="628" y1="164" x2="730" y2="164" stroke="#1f2937" stroke-dasharray="3,2"/>
+  <text x="630" y="178" class="mono" font-size="9" fill="#6b7280">-j  JSON</text>
+  <text x="630" y="192" class="mono" font-size="9" fill="#6b7280">-q  hostnames</text>
+  <text x="630" y="206" class="mono" font-size="9" fill="#6b7280">-o  file</text>
+
+  <!-- Output label -->
+  <text x="679" y="278" text-anchor="middle" class="sans" font-size="10" fill="#374151" letter-spacing="1">OUTPUT</text>
+</svg>
