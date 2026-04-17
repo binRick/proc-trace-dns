@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build binaries
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          LDFLAGS="-s -w -X main.version=${VERSION}"
+          mkdir -p dist
+
+          for GOOS in linux; do
+            for GOARCH in amd64 arm64; do
+              OUT="dist/proc-trace-dns-${GOOS}-${GOARCH}"
+              echo "Building ${OUT}..."
+              CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
+                go build -trimpath -ldflags="${LDFLAGS}" -o "${OUT}" .
+            done
+          done
+
+          # RHEL 9 RPM
+          echo "Building RPM..."
+          VERSION_CLEAN="${VERSION#v}"
+          mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          cp dist/proc-trace-dns-linux-amd64 rpmbuild/SOURCES/proc-trace-dns
+          cat > rpmbuild/SPECS/proc-trace-dns.spec <<SPEC
+          Name:     proc-trace-dns
+          Version:  ${VERSION_CLEAN}
+          Release:  1%{?dist}
+          Summary:  Watch DNS queries per-process in real time
+          License:  MIT
+          BuildArch: x86_64
+
+          %description
+          proc-trace-dns captures DNS queries system-wide via a raw AF_PACKET socket
+          and attributes each query to the process that made it. Linux only.
+          Requires CAP_NET_RAW or root.
+
+          %install
+          mkdir -p %{buildroot}/usr/local/bin
+          install -m 755 %{_sourcedir}/proc-trace-dns %{buildroot}/usr/local/bin/proc-trace-dns
+
+          %files
+          /usr/local/bin/proc-trace-dns
+
+          %changelog
+          * $(date '+%a %b %d %Y') GitHub Actions <noreply@github.com> ${VERSION_CLEAN}-1
+          - Release ${VERSION}
+          SPEC
+          rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/proc-trace-dns.spec
+          cp rpmbuild/RPMS/x86_64/*.rpm dist/ || true
+
+          ls -lh dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
