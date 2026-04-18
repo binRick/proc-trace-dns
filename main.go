@@ -53,15 +53,62 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: proc-trace-dns [flags] [-- CMD [args...]]\n\n")
-		fmt.Fprintf(os.Stderr, "Watch every DNS query your processes make, in real time.\n\n")
-		flag.PrintDefaults()
-		fmt.Fprintf(os.Stderr, "\nExamples:\n")
-		fmt.Fprintf(os.Stderr, "  sudo proc-trace-dns                      # system-wide\n")
-		fmt.Fprintf(os.Stderr, "  sudo proc-trace-dns -n curl,wget          # filter by process name\n")
-		fmt.Fprintf(os.Stderr, "  sudo proc-trace-dns -d amazonaws.com      # filter by domain\n")
-		fmt.Fprintf(os.Stderr, "  sudo proc-trace-dns -j | jq .             # JSON output\n")
-		fmt.Fprintf(os.Stderr, "  sudo proc-trace-dns -- curl https://example.com  # trace one command\n")
+		// Detect color: respect NO_COLOR, fall back to -c flag or isatty on stderr.
+		color := *fColor || (isatty(2) && os.Getenv("NO_COLOR") == "")
+		h := func(plain, colored string) string {
+			if color {
+				return colored
+			}
+			return plain
+		}
+
+		bold   := h("", "\033[1m")
+		cyan   := h("", "\033[36m")
+		yellow := h("", "\033[33m")
+		green  := h("", "\033[32m")
+		dim    := h("", "\033[2m")
+		reset  := h("", "\033[0m")
+
+		e := func(emoji string) string {
+			if color {
+				return emoji + " "
+			}
+			return ""
+		}
+
+		fmt.Fprintf(os.Stderr, "\n%s%sproc-trace-dns%s  %s(v%s)%s\n", bold, cyan, reset, dim, version, reset)
+		fmt.Fprintf(os.Stderr, "%sWatch every DNS query your processes make, in real time.%s\n\n", dim, reset)
+
+		fmt.Fprintf(os.Stderr, "%s%sUSAGE%s\n", bold, yellow, reset)
+		fmt.Fprintf(os.Stderr, "  proc-trace-dns [flags] [-- CMD [args...]]\n\n")
+
+		fmt.Fprintf(os.Stderr, "%s%s%sFLAGS%s\n", e("🚩"), bold, yellow, reset)
+
+		fmt.Fprintf(os.Stderr, "  %s%s-c%s              %sforce ANSI color output%s\n",         bold, cyan, reset, dim, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-t%s              %sshow timestamp (RFC3339) for each query%s\n", bold, cyan, reset, dim, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-q%s              %squiet — print only queried hostnames, one per line%s\n", bold, cyan, reset, dim, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-Q%s              %ssuppress error messages%s\n",          bold, cyan, reset, dim, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-f%s              %sflat output — no column alignment%s\n", bold, cyan, reset, dim, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-j%s              %sJSON output (one object per line)%s\n", bold, cyan, reset, dim, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-n%s %sNAME,...%s      only show queries from these process names\n", bold, cyan, reset, yellow, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-p%s %sPID,...%s       only show queries from these PIDs\n",          bold, cyan, reset, yellow, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-d%s %sDOMAIN%s        only show queries matching this domain substring\n", bold, cyan, reset, yellow, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-T%s %sTYPE,...%s      only show these DNS record types (e.g. A,AAAA,MX)\n", bold, cyan, reset, yellow, reset)
+		fmt.Fprintf(os.Stderr, "  %s%s-o%s %sFILE%s          append output to FILE instead of stdout\n\n",  bold, cyan, reset, yellow, reset)
+
+		fmt.Fprintf(os.Stderr, "%s%s%sEXAMPLES%s\n", e("💡"), bold, yellow, reset)
+		ex := func(cmd, comment string) {
+			fmt.Fprintf(os.Stderr, "  %s%s%-52s%s%s# %s%s\n", bold, green, cmd, reset, dim, comment, reset)
+		}
+		ex("sudo proc-trace-dns",                                  "system-wide, all processes")
+		ex("sudo proc-trace-dns -n curl,wget",                     "filter by process name")
+		ex("sudo proc-trace-dns -p 1234,5678",                     "filter by PID")
+		ex("sudo proc-trace-dns -d amazonaws.com",                 "filter by domain substring")
+		ex("sudo proc-trace-dns -T A,AAAA",                        "only show A and AAAA records")
+		ex("sudo proc-trace-dns -t -n firefox",                    "timestamped Firefox queries")
+		ex("sudo proc-trace-dns -j | jq .",                        "JSON output, pretty-printed")
+		ex("sudo proc-trace-dns -- curl https://example.com",      "trace a single command")
+		fmt.Fprintf(os.Stderr, "\n%s%sRequires root or CAP_NET_RAW. Linux only.%s\n\n", e("⚠️ "), dim, reset)
 	}
 	flag.Parse()
 
